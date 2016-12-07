@@ -1,11 +1,14 @@
-FROM paulflorea/python3-uwsgi-bower-grunt:latest
+FROM paulflorea/python3-uwsgi-bower-grunt:alpine
 
-# Download and install wkhtmltopdf and xvfb to use wkhtmltopdf without X server
-RUN apt-get install -y wkhtmltopdf xvfb
 
-RUN echo '#!/bin/sh \n\
-xvfb-run -a --server-args="-screen 0, 1024x768x24" /usr/bin/wkhtmltopdf -q $*'\
-> /usr/bin/wkhtmltopdf.sh
+# Download and install wkhtmltopdf
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories; apk upgrade --update-cache --available
+RUN apk add --update postgresql-dev wkhtmltopdf coreutils xvfb dbus
 
-RUN chmod a+x /usr/bin/wkhtmltopdf.sh
-RUN ln -s /usr/bin/wkhtmltopdf.sh /usr/local/bin/wkhtmltopdf
+
+# Install xvfb to use wkhtmltopdf without X server
+ADD ./packages/wkhtmltopdf /usr/local/bin/
+ADD ./packages/xvfb-run /usr/bin/
+
+RUN chmod a+x /usr/local/bin/wkhtmltopdf
+RUN chmod +x /usr/bin/xvfb-run
